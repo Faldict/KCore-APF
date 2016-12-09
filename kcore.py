@@ -61,7 +61,7 @@ def main():
     hist = graph.evolve(10)
     fo = open("kcore.txt", "a")
     for t in range(len(hist)):
-        line = "%s\t%s\n" % t, hist[t]
+        line = "%s\t%s\n" % (t, hist[t])
         fo.write(line)
     fo.close()
     print "[FINISH] Finish evolve at %s" % time.ctime()
