@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import time
 
 class KCore:
     '''
@@ -29,16 +30,46 @@ class KCore:
         for v in self.vertices.keys():
             for dst in self.vertices[v]:
                 if dst not in self.vertices.keys():
-                    del self.vertices[v].remove(dst)
+                    self.vertices[v].remove(dst)
 
-    def evolve(self):
+    def evolve(self, k):
         hist = [len(self.vertices)]
         while True:
-            self.prune()
+            self.prune(k)
             amount = len(self.vertices)
             if amount != hist[self.t]:
                 self.t += 1
-                hist[self.t] = amount
+                hist.append(amount)
             else:
                 return hist
+
+
+def main():
+    filepath = "~/dfy/PATT/Author_Author_cs.txt"
+    graph = KCore()
+    fi = open(filepath, "r")
+    print "Start running at %s" % time.ctime()
+    count = 0
+    while(count < 100000):
+        line = fi.readline()[:-1]
+        (v1, v2) = line.split('\t')
+        graph.addDoubleEdge(v1, v2)
+    fi.close()
+    print "[INFO] Finish readfile at %s" % time.ctime()
+    graph.check()
+    print "[INFO] Start evolving at %s" % time.ctime()
+    hist = graph.evolve(10)
+    fo = open("kcore.txt", "a")
+    for t in range(len(hist)):
+        line = "%s\t%s\n" % t, hist[t]
+        fo.write(line)
+    fo.close()
+    print "[FINISH] Finish evolve at %s" % time.ctime()
+
+if __name__ == '__main__':
+    main()
+
+
+
+
 
