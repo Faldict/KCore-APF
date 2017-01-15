@@ -1,75 +1,80 @@
 #!/usr/bin/env python
+
 import time
 
-class KCore:
-    '''
-    The impletation of data structure
-    '''
-    def __init__(self):
-        self.vertices = {}
-        self.t = 0
+edges = {}
+points = {}
 
-    def addDoubleEdge(self, v1, v2):
-        self.addSingleEdge(v1, v2)
-        self.addSingleEdge(v2, v1)
 
-    def addSingleEdge(self, src, dst):
-        if src in self.vertices.keys():
-            if dst not in self.vertices[src]:
-                self.vertices[src].append(dst)
-        else:
-            self.vertices[src] = [dst]
+def addEdge(p1, p2):
+    if p1 in edges.keys():
+        edges[p1].append(p2)
+    else:
+        edges[p1] = [p2]
+    if p2 in edges.keys():
+        edges[p2].append(p1)
+    else:
+        edges[p2] = [p1]
+    if p1 in points.keys():
+        points[p1] += 1
+    else:
+        points[p1] = 1
+    if p2 in points.keys():
+        points[p2] += 1
+    else:
+        points[p2] = 1
 
-    def prune(self, k):
-        for v in self.vertices.keys():
-            if len(self.vertices[v]) < k:
-                del self.vertices[v]
-        self.check()
 
-    def check(self):
-        for v in self.vertices.keys():
-            for dst in self.vertices[v]:
-                if dst not in self.vertices.keys():
-                    self.vertices[v].remove(dst)
+def aveDegree():
+    n = len(points)
+    s = sum(points.values())
+    return float(s) / float(n)
 
-    def evolve(self, k):
-        hist = [len(self.vertices)]
-        while True:
-            self.prune(k)
-            amount = len(self.vertices)
-            if amount != hist[self.t]:
-                self.t += 1
-                hist.append(amount)
-            else:
-                return hist
+
+def prune(kcore):
+    for k, v in edges:
+        if v < kcore:
+            for p in edges[k]:
+                if p in points.keys():
+                    points[p] -= 1
+            del points[k]
+
+
+def evolve(kcore):
+    n = len(points)
+    prune(kcore)
+    while len(points) != n:
+        n = len(points)
+        prune(kcore)
+
+
+def createTable():
+    filename = "~/dfy/DM/Author_Author_dm.txt"
+    try:
+        file_object = open(filename, "r")
+        print "[INFO] Start running at %s" % time.ctime()
+        for line in file_object:
+            line = line[:-1]
+            (p1, p2) = line.split('\t')
+            addEdge(p1, p2)
+    finally:
+        file_object.close()
+        print "[INFO] Finish read data at %s" % time.ctime()
 
 
 def main():
-    filepath = "~/dfy/PATT/Author_Author_cs.txt"
-    graph = KCore()
-    fi = open(filepath, "r")
-    print "Start running at %s" % time.ctime()
-    count = 0
-    while(count < 100000):
-        line = fi.readline()[:-1]
-        (v1, v2) = line.split('\t')
-        graph.addDoubleEdge(v1, v2)
-    fi.close()
-    print "[INFO] Finish readfile at %s" % time.ctime()
-    graph.check()
-    print "[INFO] Start evolving at %s" % time.ctime()
-    hist = graph.evolve(10)
-    fo = open("kcore.txt", "a")
-    for t in range(len(hist)):
-        line = "%s\t%s\n" % (t, hist[t])
-        fo.write(line)
-    fo.close()
-    print "[FINISH] Finish evolve at %s" % time.ctime()
+    createTable()
+    result = []
+    for k in range(0, 500, 50):
+        evolve(k)
+        result.append((k, aveDegree()))
+    filename = "kcore_dm.txt"
+    f = open(filename, "w")
+    for res in result:
+        f.write("%s\t%s\n" % res)
+    f.close()
+    print "[SUCCESS] Finish all!"
+
 
 if __name__ == '__main__':
     main()
-
-
-
-
-
